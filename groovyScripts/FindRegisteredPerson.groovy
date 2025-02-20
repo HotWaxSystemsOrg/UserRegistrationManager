@@ -18,7 +18,7 @@
  */
 
 // Retrieve partyId from parameters
-partyId = parameters.partyId ?: request.getAttribute("partyId")
+partyId = request.getAttribute("partyId")
 if (!partyId) {
     println("Missing required parameter: partyId")
     return
@@ -44,7 +44,6 @@ if (userLogin) {
     context.userLoginId = userLogin.userLoginId
     context.password = userLogin.currentPassword
 }
-
 //================================================================================
 // Search for PartyContactMechPurpose with PRIMARY_EMAIL
 partyContactMechPurpose = from("PartyContactMechPurpose").where("partyId", partyId).queryList()
@@ -102,6 +101,4 @@ if (partyContactMechPurpose) {
         }
     }
 }
-
 return "success"
-//================================================================================
