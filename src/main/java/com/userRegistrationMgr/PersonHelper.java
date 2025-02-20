@@ -68,24 +68,26 @@ public class PersonHelper{
             case "PHONE_HOME": case "PHONE_MOBILE":
                 contactMech.set("contactMechTypeId", "TELECOM_NUMBER");
                 table = "TelecomNumber"; break;
-            case "BILLING_ADDRESS": case "SHIPPING_ADDRESS":
+            case "BILLING_LOCATION": case "SHIPPING_LOCATION":
                 contactMech.set("contactMechTypeId", "POSTAL_ADDRESS");
                 table = "PostalAddress"; break;
             default: System.out.println("LOG: ----partyContactMechPurposeId mismatch");
         }
         delegator.create(contactMech);
 
-        GenericValue entity = delegator.makeValue(table);
-        entity.set("contactMechId", contactMechId);
-        if(table.equals("TELECOM_NUMBER")){
-            entity.set("contactNumber", phoneNumber);
+        if(!table.equals("")){
+            GenericValue entity = delegator.makeValue(table);
+            entity.set("contactMechId", contactMechId);
+            if(table.equals("TelecomNumber")){
+                entity.set("contactNumber", phoneNumber);
+            }
+            else if (table.equals("PostalAddress")) {
+                entity.set("address1", address1);
+                entity.set("city", city);
+                entity.set("postalCode", postalCode);
+            }
+            delegator.create(entity);
         }
-        else if (table.equals("POSTAL_ADDRESS")) {
-            entity.set("address1", address1);
-            entity.set("city", city);
-            entity.set("postalCode", postalCode);
-        }
-        delegator.create(entity);
         createPartyContactMech(delegator,partyId,contactMechId,purposeType,fromDate);
     }
 //    PARTY CONTACT MECH AND PARTY CONTACT MECH PURPOSE ENTITY CREATION
