@@ -58,7 +58,6 @@ under the License.
 
     <request-map uri="ViewRegistered">
         <security https="true" auth="true"/>
-<!--        <event type="service" invoke="viewPersonalDetails"/>-->
 <!--        <event type="groovy" path="component://userRegistrationMgr/groovyScripts/FindPersonAndUserLogin.groovy"/>-->
         <response name="success" type="view" value="viewRegisteredPerson"/>
         <response name="error" type="view" value="main"/>

@@ -1,5 +1,6 @@
 package com.userRegistrationMgr;
 import org.apache.ofbiz.base.util.UtilDateTime;
+import org.apache.ofbiz.entity.Delegator;
 import java.sql.Timestamp;
 import org.apache.ofbiz.entity.Delegator;
 import org.apache.ofbiz.entity.GenericEntityException;
@@ -12,9 +13,8 @@ import java.util.HashMap;
 import java.util.List;
 
 public class PersonHelper{
-//    ===============================================================================================
 //    PERSON REGISTRATION HELPER SERVICES
-    public static String createParty(Delegator delegator,  Map<String, ? extends Object> context) throws GenericEntityException {
+    public static Map<String, Object> createParty(Delegator delegator, Map<String, ? extends Object> context) throws GenericEntityException {
         Map<String, Object> result = ServiceUtil.returnSuccess();
         String partyId = delegator.getNextSeqId("Party");
         GenericValue party = delegator.makeValue("Party");
@@ -22,16 +22,12 @@ public class PersonHelper{
         party.set("partyTypeId", "PERSON");
         delegator.create(party);
 
-        createPerson(delegator, context, partyId);
-        createUserLogin(delegator, context, partyId);
-
-        result.put("partyId", partyId);
-        result.put("firstName", firstName);
-        result.put("lastName", lastName);
+        createPerson(delegator,context,result,partyId);
+        createUserLogin(delegator,context,partyId);
         return result;
     }
 
-    private static void createPerson(Delegator delegator, Map<String, ? extends Object> context, String partyId) throws GenericEntityException {
+    private static void createPerson(Delegator delegator, Map<String, ? extends Object> context, Map<String, Object> result, String partyId) throws GenericEntityException {
         String firstName = (String) context.get("firstName");
         String lastName = (String) context.get("lastName");
 
@@ -40,6 +36,10 @@ public class PersonHelper{
         person.set("firstName", firstName);
         person.set("lastName", lastName);
         delegator.create(person);
+
+        result.put("partyId", partyId);
+        result.put("firstName", firstName);
+        result.put("lastName", lastName);
     }
 
     private static void createUserLogin(Delegator delegator, Map<String, ? extends Object> context, String partyId)
@@ -57,40 +57,39 @@ public class PersonHelper{
 //    PERSONAL DETAILS HELPER SERVICES
     public static void createContactMech(Delegator delegator, String partyId, String email, String phoneNumber, String address1,
                                          String city, String postalCode, String purposeType, Timestamp fromDate) throws GenericEntityException {
-        String contactMechId = delegator.getNextSeqId("ContactMech");
+        String table = "", contactMechId = delegator.getNextSeqId("ContactMech");
         GenericValue contactMech = delegator.makeValue("ContactMech");
         contactMech.set("contactMechId", contactMechId);
 
         switch(purposeType){
-            case "EMAIL_ADDRESS": createEmailContact(delegator,email); break;
-            case "PHONE_HOME": case "PHONE_MOBILE": createPhoneContact(delegator,contactMechId,phoneNumber); break;
-            case "BILLING_ADDRESS": createAddressContact(delegator,address1,city,postalCode); break;
-            case "SHIPPING_ADDRESS": createAddressContact(delegator,address1,city,postalCode); break;
-            default:    System.out.println("LOG: ----partyContactMechPurposeId mismatch");
+            case "PRIMARY_EMAIL":
+                contactMech.set("contactMechTypeId", "EMAIL_ADDRESS");
+                contactMech.set("infoString", email); break;
+            case "PHONE_HOME": case "PHONE_MOBILE":
+                contactMech.set("contactMechTypeId", "TELECOM_NUMBER");
+                table = "TelecomNumber"; break;
+            case "BILLING_ADDRESS": case "SHIPPING_ADDRESS":
+                contactMech.set("contactMechTypeId", "POSTAL_ADDRESS");
+                table = "PostalAddress"; break;
+            default: System.out.println("LOG: ----partyContactMechPurposeId mismatch");
         }
-        createPartyContactMech(delegator, partyId, contactMechId, purposeType, fromDate);
-    }
-//  ============================================================================
-//    CONTACT MECH ENTITIES CREATION METHODS
-    public static void createEmailContact(Delegator delegator, String email) throws GenericEntityException {
-        contactMech.set("contactMechTypeId", "EMAIL_ADDRESS");
-        contactMech.set("infoString", email);
-        delegator.create(contactMech);
-    }
-
-    public static void createPhoneContact(Delegator delegator, String contactMechId, String phoneNumber) throws GenericEntityException {
-        contactMech.set("contactMechTypeId", "TELECOM_NUMBER");
         delegator.create(contactMech);
 
-        GenericValue telecomNumber = delegator.makeValue("TelecomNumber");
-        telecomNumber.set("contactMechId", contactMechId);
-        telecomNumber.set("contactNumber", phoneNumber);
-        delegator.create(telecomNumber);
+        GenericValue entity = delegator.makeValue(table);
+        entity.set("contactMechId", contactMechId);
+        if(table.equals("TELECOM_NUMBER")){
+            entity.set("contactNumber", phoneNumber);
+        }
+        else if (table.equals("POSTAL_ADDRESS")) {
+            entity.set("address1", address1);
+            entity.set("city", city);
+            entity.set("postalCode", postalCode);
+        }
+        delegator.create(entity);
+        createPartyContactMech(delegator,partyId,contactMechId,purposeType,fromDate);
     }
-
-    //    ===============================================================================================
-//    PARTY CONTACT MECH ENTITY CREATION METHODS
-    public static void createPartyContactMech(Delegator delegator, String partyId, String contactMechId, String purposeType,
+//    PARTY CONTACT MECH AND PARTY CONTACT MECH PURPOSE ENTITY CREATION
+    private static void createPartyContactMech(Delegator delegator, String partyId, String contactMechId, String purposeType,
                                               Timestamp fromDate) throws GenericEntityException {
         GenericValue partyContactMech = delegator.makeValue("PartyContactMech");
         partyContactMech.set("partyId", partyId);
@@ -104,17 +103,5 @@ public class PersonHelper{
         partyContactMechPurpose.set("fromDate", fromDate);
         partyContactMechPurpose.set("contactMechPurposeTypeId", purposeType);
         delegator.create(partyContactMechPurpose);
-    }
-    public static void createAddressContact(Delegator delegator, String address1, String city, String postalCode, String purposeType,
-                                            Timestamp fromDate) throws GenericEntityException {
-        contactMech.set("contactMechTypeId", "POSTAL_ADDRESS");
-        delegator.create(contactMech);
-
-        GenericValue postalAddress = delegator.makeValue("PostalAddress");
-        postalAddress.set("contactMechId", contactMechId);
-        postalAddress.set("address1", address1);
-        postalAddress.set("city", city);
-        postalAddress.set("postalCode", postalCode);
-        delegator.create(postalAddress);
     }
 }
