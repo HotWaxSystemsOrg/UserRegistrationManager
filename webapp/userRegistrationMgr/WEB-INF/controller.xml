@@ -56,12 +56,12 @@ under the License.
         <response name="error" type="view" value="main"/>
     </request-map>
 
-    <request-map uri="ViewRegistered">
-        <security https="true" auth="true"/>
-<!--        <event type="groovy" path="component://userRegistrationMgr/groovyScripts/FindPersonAndUserLogin.groovy"/>-->
-        <response name="success" type="view" value="viewRegisteredPerson"/>
-        <response name="error" type="view" value="main"/>
-    </request-map>
+<!--    <request-map uri="ViewRegistered">-->
+<!--        <security https="true" auth="true"/>-->
+<!--&lt;!&ndash;        <event type="groovy" path="component://userRegistrationMgr/groovyScripts/FindPersonAndUserLogin.groovy"/>&ndash;&gt;-->
+<!--        <response name="success" type="view" value="viewRegisteredPerson"/>-->
+<!--        <response name="error" type="view" value="main"/>-->
+<!--    </request-map>-->
 
     <!-- View Mappings -->
     <view-map name="main" type="screen" page="component://userRegistrationMgr/widget/UserRegistrationMgrScreens.xml#main"/>

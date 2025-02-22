@@ -5,7 +5,7 @@
             <td><input type='text' name='firstName' placeholder="Enter first name here"/></td>
         </tr>
         <tr>
-            <td><label>${uiLabelMap.Last_Name}</label></td>
+            <td><label> ${uiLabelMap.Last_Name}</label></td>
             <td><input type='text' name='lastName' placeholder="Enter last name here"/></td>
         </tr>
         <tr>

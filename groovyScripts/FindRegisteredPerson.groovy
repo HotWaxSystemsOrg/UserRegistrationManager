@@ -18,7 +18,7 @@
  */
 
 // Retrieve partyId from parameters
-partyId = request.getAttribute("partyId")
+partyId = parameters.partyId ?: request.getAttribute("partyId")
 if (!partyId) {
     println("Missing required parameter: partyId")
     return
@@ -27,6 +27,8 @@ println("LOG: -----------------------partyId found = " + partyId)
 
 // Search for Person
 person = from("Person").where("partyId", partyId).queryOne()
+println(parameters)
+println("---------parameters--------------------")
 if (!person) {
     println("LOG: person record not found")
     return
